@@ -23,6 +23,7 @@ Those two commands give me a raw binary file, and then convert that binary to th
 HD44780 LCD is hooked up to MCU as follows:
 
 >LCD: DB4|DB5|DB6|DB7|EN |RS    RW
+
 >P1:   0   1   2   3   4   5    GND 
 
 LEDs and piezo buzzer or speaker are hooked to pins of P3. I used 2.7k has pullup resistors for the LCD lines on P1. I think 4.7k would be more correct but the 2.7ks were what I had handy.
