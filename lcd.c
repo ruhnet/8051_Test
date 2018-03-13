@@ -35,11 +35,12 @@ void lcd_reset()  //Reset sequence as stated in the LCD datasheet
 void lcd_cmd(unsigned char cmd)               //Subroutine to send command
 { 
 	LCD = ((cmd>>4)&0x0F)|ENABLE;     //Sending higher nibble by shifting with Pulsing Enable high
-	delay_ms(5);
+	delay_us(20);
 	LCD = ((cmd>>4)&0x0F);
-  	delay_ms(5);
+  	delay_us(20);
 	LCD = (cmd & 0x0F)|ENABLE;          //Sending lower nibble Enable low
 	LCD = (cmd & 0x0F);
+  	delay_us(60);
 }
 
 
@@ -47,13 +48,13 @@ void lcd_data (char *dat)          //Subroutine to send data
 { 
   	while(*dat != '\0') {
 		LCD = (((*dat>>4)&0x0F)|ENABLE|REG_SL); //Sending data by making RS=1
-		delay_ms(1);
+		delay_us(20);
 		LCD = (((*dat>>4)&0x0F)|REG_SL);
-		delay_ms(1);
+		delay_us(20);
 		LCD = ((*dat & 0x0F)|ENABLE|REG_SL);
-		delay_ms(1);
+		delay_us(20);
 		LCD = ((*dat & 0x0F)|REG_SL);
-		delay_ms(1);
+		delay_us(20);
 		dat++;
 	}
 }
@@ -70,25 +71,36 @@ void lcd_init ()
 }
 
 
-void sweep(void) 
+void achord(unsigned char count)
 {
-unsigned int freq;
-unsigned int z;
-unsigned int notes;
-unsigned int cycles;
-
-		freq=398;
-		z=3980;
-		for(notes=398;notes>2;notes--) {
-			for(cycles=z/20;cycles>0;cycles--) {
-				P3=0x55;
-				delay_us(freq);
-				P3=0xAA;
-				delay_us(freq);
-			}
-			freq--;
-			z=z-5;
+	unsigned char y;
+	unsigned char r;
+	for(r=0;r<count;r++) {
+		for(y=110;y>0;y--) { //0.25 sec, A 440Hz
+			P3=0x55;
+			delay_us(91);
+			P3=0xAA;
+			delay_us(91);
 		}
+		for(y=139;y>0;y--) { //0.25 sec, C# 554Hz
+			P3=0x55;
+			delay_us(72);
+			P3=0xAA;
+			delay_us(72);
+		}
+		for(y=165;y>0;y--) { //0.25 sec, E 659Hz
+			P3=0x55;
+			delay_us(60);
+			P3=0xAA;
+			delay_us(60);
+		}
+		for(y=220;y>0;y--) { //0.25 sec, A 880Hz
+			P3=0x55;
+			delay_us(44);
+			P3=0xAA;
+			delay_us(44);
+		}
+	}
 
 }
 
@@ -96,8 +108,12 @@ unsigned int cycles;
 
 void main()
 {
-	unsigned char x;
+	//unsigned int freq;
+	//unsigned int notes;
+	//unsigned int cycles;
 	unsigned int y;
+	//unsigned int z;
+
     lcd_reset();
     lcd_init();
     lcd_data(" [RuhNet Labs] ");
@@ -106,9 +122,10 @@ void main()
    		lcd_init();       //Clear screen and return home    
     	lcd_data(" [RuhNet Labs] ");
 		P3 = 0xFF; //turn all P3 outputs on
-		delay_ms(2000);
-		lcd_cmd(0x80);       // First row first column
+		delay_ms(1000);
+		lcd_cmd(0xC0);       // Second row first column
     	lcd_data("_Intel 8051 MCU_");
+		delay_ms(1000);
 		P3 = 0x00;
 		delay_ms(1000);
 		P3 = 0xFF;
@@ -127,45 +144,62 @@ void main()
 		delay_ms(1000); 
 
 		lcd_cmd(0xC0);       // Second row first column
-    	lcd_data("P3 rate: ~100Hz  ");
-		for(x=100;x>0;x--) { //2 seconds, 100Hz
-			P3=0x55;
-			delay_ms(5);
-			P3=0xAA;
-			delay_ms(5);
-		}
-		lcd_cmd(0xC0);       // Second row first column
     	lcd_data("P3 rate: ~10Hz  ");
-		for (x=24;x>0;x--) { //4.8 seconds, 10Hz
-			P3=0x55;
-			delay_ms(50);
-			P3=0xAA;
-			delay_ms(50);
-		}
-		for(x=10;x>0;x--) { //0.2 seconds, 
+		for(y=10;y>0;y--) { //0.2 seconds of 100Hz
 			P3=0x55;
 			delay_ms(5);
 			P3=0xAA;
 			delay_ms(5);
 		}
-		lcd_cmd(0xC0);       // Second row first column
-    	lcd_data("P3 rate: ~220Hz ");
-		for(x=220;x>0;x--) { //2 sec, 200Hz
+		for (y=24;y>0;y--) { 
 			P3=0x55;
-			delay_us(250);
+			delay_ms(50);
 			P3=0xAA;
-			delay_us(250);
+			delay_ms(50);
 		}
 		lcd_cmd(0xC0);       // Second row first column
-    	lcd_data("P3 rate: ~247Hz ");
-		for(y=247;y>0;y--) { //2 sec, 250Hz
+    	lcd_data("P3 rate: ~100Hz ");
+		for(y=100;y>0;y--) { //2 seconds, 100Hz
+			P3=0x55;
+			delay_ms(5);
+			P3=0xAA;
+			delay_ms(5);
+		}
+		lcd_cmd(0xC0);      
+
+    	lcd_data("P3 rate: ~1000Hz");
+		for(y=1000;y>0;y--) { 
+			P3=0x55;
+			delay_us(40);
+			P3=0xAA;
+			delay_us(40);
+		}
+		lcd_cmd(0xC0);       // Second row first column
+    	lcd_data("P3 rate: ~10kHz ");
+		for(y=10000;y>0;y--) { 
+			P3=0x55;
+			delay_us(4);
+			P3=0xAA;
+			delay_us(4);
+		}
+		lcd_cmd(0xC0);     
+    	lcd_data("P3 rate: 220Hz~A");
+		for(y=220;y>0;y--) { 
+			P3=0x55;
+			delay_us(181);
+			P3=0xAA;
+			delay_us(181);
+		}
+		lcd_cmd(0xC0);     
+    	lcd_data("P3 rate: 247Hz~B");
+		for(y=247;y>0;y--) {
 			P3=0x55;
 			delay_us(161);
 			P3=0xAA;
 			delay_us(161);
 		}
-		lcd_cmd(0xC0);       // Second row first column
-    	lcd_data("P3 rate: ~262Hz ");
+		lcd_cmd(0xC0);    
+    	lcd_data("P3 rate: 262Hz~C");
 		for(y=262;y>0;y--) { 
 			P3=0x55;
 			delay_us(152);
@@ -173,7 +207,7 @@ void main()
 			delay_us(152);
 		}
 		lcd_cmd(0xC0);      
-    	lcd_data("P3 rate: ~294Hz");
+    	lcd_data("P3 rate: 294Hz~D");
 		for(y=294;y>0;y--) { 
 			P3=0x55;
 			delay_us(136);
@@ -181,7 +215,7 @@ void main()
 			delay_us(135);
 		}
 		lcd_cmd(0xC0);      
-    	lcd_data("P3 rate: ~329Hz");
+    	lcd_data("P3 rate: 329Hz~E");
 		for(y=329;y>0;y--) { 
 			P3=0x55;
 			delay_us(121);
@@ -189,7 +223,7 @@ void main()
 			delay_us(121);
 		}
 		lcd_cmd(0xC0);      
-    	lcd_data("P3 rate: ~370Hz");
+    	lcd_data("P3 rate: 370Hz~F");
 		for(y=370;y>0;y--) { 
 			P3=0x55;
 			delay_us(108);
@@ -197,7 +231,7 @@ void main()
 			delay_us(107);
 		}
 		lcd_cmd(0xC0);      
-    	lcd_data("P3 rate: ~415Hz");
+    	lcd_data("P3 rate: 415Hz~G");
 		for(y=415;y>0;y--) { 
 			P3=0x55;
 			delay_us(96);
@@ -205,7 +239,7 @@ void main()
 			delay_us(96);
 		}
 		lcd_cmd(0xC0);      
-    	lcd_data("P3 rate: ~440Hz");
+    	lcd_data("P3 rate: 440Hz~A");
 		for(y=440;y>0;y--) { 
 			P3=0x55;
 			delay_us(91);
@@ -220,7 +254,7 @@ void main()
 
 		lcd_cmd(0xC0);       // Second row first column
     	lcd_data("FruitFly 2167Hz!");
-		for(y=7585;y>0;y--) { 
+		for(y=4334;y>0;y--) {  //2 seconds
 			P3=0x55;
 			delay_us(18);
 			P3=0xAA;
@@ -236,11 +270,11 @@ void main()
 			P3=0xAA;
 			delay_us(91);
 		}
-		for(y=523;y>0;y--) { //1 sec, C# 523Hz
+		for(y=554;y>0;y--) { //1 sec, C# 554Hz
 			P3=0x55;
-			delay_us(76);
+			delay_us(72);
 			P3=0xAA;
-			delay_us(76);
+			delay_us(72);
 		}
 		for(y=659;y>0;y--) { //1 sec, E 659Hz
 			P3=0x55;
@@ -255,123 +289,30 @@ void main()
 			delay_us(44);
 		}
 
-
-		for(y=110;y>0;y--) { //0.25 sec, A 440Hz
-			P3=0x55;
-			delay_us(91);
-			P3=0xAA;
-			delay_us(91);
-		}
-		for(y=131;y>0;y--) { //0.25 sec, C# 523Hz
-			P3=0x55;
-			delay_us(76);
-			P3=0xAA;
-			delay_us(76);
-		}
-		for(y=165;y>0;y--) { //0.25 sec, E 659Hz
-			P3=0x55;
-			delay_us(60);
-			P3=0xAA;
-			delay_us(60);
-		}
-		for(y=220;y>0;y--) { //0.25 sec, A 880Hz
-			P3=0x55;
-			delay_us(44);
-			P3=0xAA;
-			delay_us(44);
-		}
-
-
-		for(y=110;y>0;y--) { //0.25 sec, A 440Hz
-			P3=0x55;
-			delay_us(91);
-			P3=0xAA;
-			delay_us(91);
-		}
-		for(y=131;y>0;y--) { //0.25 sec, C# 523Hz
-			P3=0x55;
-			delay_us(76);
-			P3=0xAA;
-			delay_us(76);
-		}
-		for(y=165;y>0;y--) { //0.25 sec, E 659Hz
-			P3=0x55;
-			delay_us(60);
-			P3=0xAA;
-			delay_us(60);
-		}
-		for(y=220;y>0;y--) { //0.25 sec, A 880Hz
-			P3=0x55;
-			delay_us(44);
-			P3=0xAA;
-			delay_us(44);
-		}
-
-
-
-		for(y=110;y>0;y--) { //0.25 sec, A 440Hz
-			P3=0x55;
-			delay_us(91);
-			P3=0xAA;
-			delay_us(91);
-		}
-		for(y=131;y>0;y--) { //0.25 sec, C# 523Hz
-			P3=0x55;
-			delay_us(76);
-			P3=0xAA;
-			delay_us(76);
-		}
-		for(y=165;y>0;y--) { //0.25 sec, E 659Hz
-			P3=0x55;
-			delay_us(60);
-			P3=0xAA;
-			delay_us(60);
-		}
-		for(y=220;y>0;y--) { //0.25 sec, A 880Hz
-			P3=0x55;
-			delay_us(44);
-			P3=0xAA;
-			delay_us(44);
-		}
-
-
-
-		for(y=110;y>0;y--) { //0.25 sec, A 440Hz
-			P3=0x55;
-			delay_us(91);
-			P3=0xAA;
-			delay_us(91);
-		}
-		for(y=131;y>0;y--) { //0.25 sec, C# 523Hz
-			P3=0x55;
-			delay_us(76);
-			P3=0xAA;
-			delay_us(76);
-		}
-		for(y=165;y>0;y--) { //0.25 sec, E 659Hz
-			P3=0x55;
-			delay_us(60);
-			P3=0xAA;
-			delay_us(60);
-		}
-		for(y=220;y>0;y--) { //0.25 sec, A 880Hz
-			P3=0x55;
-			delay_us(44);
-			P3=0xAA;
-			delay_us(44);
-		}
-
+		achord(4);
 
 		lcd_cmd(0x80);       
-		lcd_data("Frequency Sweep:");
+		lcd_data("   -The|End-    ");
 		lcd_cmd(0xC0);       // Second row first column
-    	lcd_data("100Hz ~~~ 10kHz ");
-		sweep();
+    	lcd_data("https://ruel.io ");
+		//delay_ms(1000);
 
-
-
-
-
-	
+	 	/*
+	 	//Doesn't work for some reason:
+	 	//Maintins 100Hz indefinitely... :-(
+		freq=399;
+		z=3985;
+		for(notes=398;notes>2;notes--) {
+			freq--;
+			z=z-5;
+			for(cycles=(z/40);cycles>0;cycles--) {
+			//for(cycles=freq;cycles>0;cycles--) {
+				P3=0x55;
+				delay_us(freq);
+				P3=0xAA;
+				delay_us(freq);
+			}
+		}
+		*/
 	}
 }
