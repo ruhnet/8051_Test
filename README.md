@@ -30,4 +30,4 @@ LEDs and piezo buzzer or speaker are hooked to pins of P3. I used 2.7k has pullu
 
 My test circuit is on a breadboard, with external EPROM chip (27c64, but I also used 27256 and 27c512 with success).
 
-
+![8051 Schematic](8051_RuhNet_Schematic.jpg)
